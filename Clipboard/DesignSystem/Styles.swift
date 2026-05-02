@@ -13,6 +13,7 @@ enum AppLayout {
     static let cornerRadiusSmall: CGFloat = 4
     static let cornerRadiusMedium: CGFloat = 6
     static let cornerRadiusLarge: CGFloat = 8
+    static let cornerRadiusXLarge: CGFloat = 12
 
     static let iconSizeSmall: CGFloat = 20
     static let iconSizeMedium: CGFloat = 24
@@ -28,6 +29,19 @@ enum AppLayout {
     static let quickSearchWidth: CGFloat = 500
     static let settingsWidth: CGFloat = 400
     static let settingsHeight: CGFloat = 250
+
+    // MARK: - Shadows
+    static let shadowRadius: CGFloat = 8
+    static let shadowRadiusSmall: CGFloat = 4
+    static let shadowRadiusLarge: CGFloat = 16
+    static let shadowY: CGFloat = 2
+}
+
+// MARK: - Animation Constants
+enum AppAnimation {
+    static let fast: Double = 0.15
+    static let `default`: Double = 0.25
+    static let slow: Double = 0.4
 }
 
 // MARK: - Content Type
@@ -70,6 +84,14 @@ enum ContentType: String {
     }
 }
 
+// MARK: - Divider
+struct AppDivider: View {
+    var body: some View {
+        Divider()
+            .foregroundStyle(.appSeparator)
+    }
+}
+
 // MARK: - Badge
 struct Badge: ViewModifier {
     let color: Color
@@ -106,19 +128,53 @@ struct SearchBarStyle: ViewModifier {
     }
 }
 
-// MARK: - Divider Wrapper
-struct AppDivider: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-        Divider()
-    }
-}
-
 // MARK: - App Link Button
 struct AppLinkButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(Color.accentColor)
+    }
+}
+
+// MARK: - Primary Button
+struct AppPrimaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.appBodyMedium)
+            .foregroundStyle(.white)
+            .padding(.horizontal, AppLayout.paddingMedium)
+            .padding(.vertical, AppLayout.paddingSmall + 2)
+            .background(Color.accentColor, in: RoundedRectangle(cornerRadius: AppLayout.cornerRadiusMedium))
+            .opacity(configuration.isPressed ? 0.8 : 1)
+    }
+}
+
+// MARK: - Secondary Button
+struct AppSecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.appBodyMedium)
+            .foregroundStyle(.appTextPrimary)
+            .padding(.horizontal, AppLayout.paddingMedium)
+            .padding(.vertical, AppLayout.paddingSmall + 2)
+            .background(.appSurface, in: RoundedRectangle(cornerRadius: AppLayout.cornerRadiusMedium))
+            .overlay(
+                RoundedRectangle(cornerRadius: AppLayout.cornerRadiusMedium)
+                    .stroke(.appBorder, lineWidth: 1)
+            )
+            .opacity(configuration.isPressed ? 0.8 : 1)
+    }
+}
+
+// MARK: - Ghost Button
+struct AppGhostButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.appBodyMedium)
+            .foregroundStyle(.appTextSecondary)
+            .padding(.horizontal, AppLayout.paddingMedium)
+            .padding(.vertical, AppLayout.paddingSmall + 2)
+            .background(configuration.isPressed ? Color.accentColor.opacity(0.1) : Color.clear, in: RoundedRectangle(cornerRadius: AppLayout.cornerRadiusMedium))
     }
 }
 
@@ -140,7 +196,7 @@ struct CodeBlockStyle: ViewModifier {
             .font(.appMonospaced)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
-            .background(.quaternary.opacity(0.3))
+            .background(.appSurfaceTertiary)
             .cornerRadius(AppLayout.cornerRadiusLarge)
     }
 }
@@ -151,8 +207,18 @@ struct TextEditorBorderStyle: ViewModifier {
         content
             .overlay(
                 RoundedRectangle(cornerRadius: AppLayout.cornerRadiusSmall)
-                    .stroke(.quaternary, lineWidth: 1)
+                    .stroke(.appBorder, lineWidth: 1)
             )
+    }
+}
+
+// MARK: - Card Container
+struct CardStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(.appSurface)
+            .cornerRadius(AppLayout.cornerRadiusXLarge)
+            .shadow(color: .appShadow, radius: AppLayout.shadowRadiusSmall, y: AppLayout.shadowY)
     }
 }
 
@@ -184,5 +250,9 @@ extension View {
 
     func textEditorBorder() -> some View {
         modifier(TextEditorBorderStyle())
+    }
+
+    func cardStyle() -> some View {
+        modifier(CardStyle())
     }
 }

@@ -1,10 +1,3 @@
-//
-//  MenuBarView.swift
-//  Clipboard
-//
-//  Created by Mehmet Fışkındal on 2.05.2026.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -14,47 +7,30 @@ struct MenuBarView: View {
     @Environment(\.openSettings) private var openSettings
     @Query(sort: \ClipboardEntry.createdAt, order: .reverse) private var clipboardEntries: [ClipboardEntry]
     @Query(sort: \Snippet.updatedAt, order: .reverse) private var snippets: [Snippet]
-    
+
     @State private var searchText = ""
     @State private var selectedTab = 0
-    
+
     private var filteredEntries: [ClipboardEntry] {
-        if searchText.isEmpty {
-            return Array(clipboardEntries.prefix(10))
-        }
+        if searchText.isEmpty { return Array(clipboardEntries.prefix(10)) }
         return clipboardEntries.filter { $0.content.localizedCaseInsensitiveContains(searchText) }
     }
-    
+
     private var filteredSnippets: [Snippet] {
-        if searchText.isEmpty {
-            return Array(snippets.prefix(5))
-        }
-        return snippets.filter { 
+        if searchText.isEmpty { return Array(snippets.prefix(5)) }
+        return snippets.filter {
             $0.title.localizedCaseInsensitiveContains(searchText) ||
             $0.body.localizedCaseInsensitiveContains(searchText)
         }
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Search bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.appSecondaryText)
-                TextField("Search...", text: $searchText)
-                    .textFieldStyle(.plain)
-                if !searchText.isEmpty {
-                    Button(action: { searchText = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.appSecondaryText)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .searchBarStyle()
-            .padding(.horizontal, AppLayout.paddingMedium)
-            .padding(.top, AppLayout.paddingMedium)
-            
+            searchBar
+                .padding(.horizontal, AppLayout.paddingMedium)
+                .padding(.top, AppLayout.paddingMedium)
+
             // Tab selector
             Picker("", selection: $selectedTab) {
                 Text("History").tag(0)
@@ -63,179 +39,213 @@ struct MenuBarView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, AppLayout.paddingMedium)
             .padding(.top, AppLayout.paddingSmall)
-            
+
             // Content
             TabView(selection: $selectedTab) {
-                clipboardList.tag(0)
-                snippetsList.tag(1)
+                entryList.tag(0)
+                snippetList.tag(1)
             }
             .tabViewStyle(.automatic)
-            .frame(height: 300)
-            
-            Divider()
+
+            // Footer
+            AppDivider()
                 .padding(.horizontal, AppLayout.paddingMedium)
-            
-            // Footer buttons
-            HStack {
-                Button("Open Main Window") {
-                    openWindow(id: "main-window")
-                }
-                .buttonStyle(.link)
-                
-                Spacer()
-                
-                Button("Settings") {
-                    openSettings()
-                }
-                .buttonStyle(.link)
-                
-                Divider()
-                    .frame(height: AppLayout.spacingMedium)
-                
-                Button("Quit") {
-                    NSApplication.shared.terminate(nil)
-                }
-                .buttonStyle(.link)
-            }
-            .padding(.horizontal, AppLayout.paddingMedium)
-            .padding(.vertical, AppLayout.paddingSmall)
+
+            footer
+                .padding(.horizontal, AppLayout.paddingMedium)
+                .padding(.vertical, AppLayout.paddingSmall)
         }
         .frame(width: AppLayout.menuBarWidth)
+        .background(.appBackground)
     }
-    
-    private var clipboardList: some View {
-        List {
+
+    // MARK: - Search Bar
+    private var searchBar: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.appTextSecondary)
+            TextField("Search...", text: $searchText)
+                .textFieldStyle(.plain)
+            if !searchText.isEmpty {
+                Button(action: { searchText = "" }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.appTextSecondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .searchBarStyle()
+    }
+
+    // MARK: - Entry List (Card Layout)
+    private var entryList: some View {
+        ScrollView {
             if filteredEntries.isEmpty {
-                ContentUnavailableView("No Items", systemImage: "clipboard")
+                emptyState(icon: "clipboard", message: "No Items")
             } else {
-                ForEach(filteredEntries) { entry in
-                    ClipboardEntryRow(entry: entry)
-                        .contextMenu {
-                            Button("Copy") {
-                                copyToClipboard(entry.content)
+                LazyVStack(spacing: AppLayout.spacingSmall) {
+                    ForEach(filteredEntries) { entry in
+                        MenuBarEntryCard(entry: entry)
+                            .contextMenu {
+                                Button("Copy") { copyToClipboard(entry.content) }
+                                Button(entry.pinned ? "Unpin" : "Pin") { entry.pinned.toggle() }
+                                Divider()
+                                Button("Delete", role: .destructive) { modelContext.delete(entry) }
                             }
-                            Button(entry.pinned ? "Unpin" : "Pin") {
-                                togglePin(entry)
-                            }
-                            Divider()
-                            Button("Delete", role: .destructive) {
-                                deleteEntry(entry)
-                            }
-                        }
+                    }
                 }
+                .padding(AppLayout.spacingMedium)
             }
         }
-        .listStyle(.plain)
     }
-    
-    private var snippetsList: some View {
-        List {
+
+    // MARK: - Snippet List (Card Layout)
+    private var snippetList: some View {
+        ScrollView {
             if filteredSnippets.isEmpty {
-                ContentUnavailableView("No Snippets", systemImage: "doc.text")
+                emptyState(icon: "doc.text", message: "No Snippets")
             } else {
-                ForEach(filteredSnippets) { snippet in
-                    SnippetRow(snippet: snippet)
-                        .contextMenu {
-                            Button("Copy") {
-                                copyToClipboard(snippet.body)
+                LazyVStack(spacing: AppLayout.spacingSmall) {
+                    ForEach(filteredSnippets) { snippet in
+                        MenuBarSnippetCard(snippet: snippet)
+                            .contextMenu {
+                                Button("Copy") { copyToClipboard(snippet.body) }
+                                Divider()
+                                Button("Delete", role: .destructive) { modelContext.delete(snippet) }
                             }
-                            Divider()
-                            Button("Delete", role: .destructive) {
-                                deleteSnippet(snippet)
-                            }
-                        }
+                    }
                 }
+                .padding(AppLayout.spacingMedium)
             }
         }
-        .listStyle(.plain)
     }
-    
+
+    private func emptyState(icon: String, message: String) -> some View {
+        VStack(spacing: AppLayout.spacingSmall) {
+            Spacer()
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(.appTextTertiary)
+            Text(message)
+                .font(.appBody)
+                .foregroundStyle(.appTextTertiary)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Footer
+    private var footer: some View {
+        HStack {
+            Button("Open Window") { openWindow(id: "main-window") }
+                .buttonStyle(.link)
+
+            Spacer()
+
+            Button("Settings") { openSettings() }
+                .buttonStyle(.link)
+
+            Rectangle()
+                .fill(.appBorder)
+                .frame(width: 1, height: AppLayout.spacingMedium)
+
+            Button("Quit") { NSApplication.shared.terminate(nil) }
+                .buttonStyle(.link)
+        }
+    }
+
     private func copyToClipboard(_ content: String) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(content, forType: .string)
     }
-    
-    private func togglePin(_ entry: ClipboardEntry) {
-        entry.pinned.toggle()
-    }
-    
-    private func deleteEntry(_ entry: ClipboardEntry) {
-        modelContext.delete(entry)
-    }
-    
-    private func deleteSnippet(_ snippet: Snippet) {
-        modelContext.delete(snippet)
-    }
 }
 
-struct ClipboardEntryRow: View {
+// MARK: - Entry Card
+struct MenuBarEntryCard: View {
     let entry: ClipboardEntry
-    
+
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: AppLayout.spacingSmall) {
             Image(systemName: ContentType(entry.contentType).icon)
-                .foregroundStyle(ContentType(entry.contentType).semanticColor)
-                .frame(width: 20)
-            
+                .font(.callout)
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .background(ContentType(entry.contentType).semanticColor, in: RoundedRectangle(cornerRadius: AppLayout.cornerRadiusMedium))
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.content)
                     .lineLimit(2)
                     .font(.appBody)
-                
-                HStack {
+
+                HStack(spacing: 4) {
                     Text(entry.createdAt, style: .relative)
                         .font(.appCaption)
-                        .foregroundStyle(.appSecondaryText)
-                    
+                        .foregroundStyle(.appTextSecondary)
+
                     if let sourceApp = entry.sourceApp {
                         Text("•")
                             .font(.appCaption)
-                            .foregroundStyle(.appSecondaryText)
+                            .foregroundStyle(.appTextTertiary)
                         Text(sourceApp)
                             .font(.appCaption)
-                            .foregroundStyle(.appSecondaryText)
+                            .foregroundStyle(.appTextSecondary)
                     }
                 }
             }
-            
+
             if entry.pinned {
-                Spacer()
                 Image(systemName: "pin.fill")
                     .font(.appCaption)
                     .foregroundStyle(.semanticFile)
             }
         }
-        .padding(.vertical, 2)
+        .padding(AppLayout.spacingMedium)
+        .background(.appSurface)
+        .cornerRadius(AppLayout.cornerRadiusLarge)
+        .shadow(color: .appShadow, radius: AppLayout.shadowRadiusSmall, y: AppLayout.shadowY)
     }
 }
 
-struct SnippetRow: View {
+// MARK: - Snippet Card
+struct MenuBarSnippetCard: View {
     let snippet: Snippet
-    
+
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: AppLayout.spacingSmall) {
             Image(systemName: snippet.pinned ? "pin.fill" : "doc.text")
-                .foregroundStyle(.appSecondaryText)
-                .frame(width: 20)
-            
+                .font(.callout)
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .background(Color.accentColor, in: RoundedRectangle(cornerRadius: AppLayout.cornerRadiusMedium))
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(snippet.title)
                     .font(.appBodyMedium)
-                
+
                 Text(snippet.body)
                     .font(.appCaption)
-                    .foregroundStyle(.appSecondaryText)
+                    .foregroundStyle(.appTextSecondary)
                     .lineLimit(2)
-                
+
                 if !snippet.tags.isEmpty {
                     Text(snippet.tags.joined(separator: ", "))
                         .font(.appCaption)
                         .foregroundStyle(.semanticText)
+                        .lineLimit(1)
                 }
             }
+
+            if snippet.pinned {
+                Image(systemName: "pin.fill")
+                    .font(.appCaption)
+                    .foregroundStyle(.semanticFile)
+            }
         }
-        .padding(.vertical, 2)
+        .padding(AppLayout.spacingMedium)
+        .background(.appSurface)
+        .cornerRadius(AppLayout.cornerRadiusLarge)
+        .shadow(color: .appShadow, radius: AppLayout.shadowRadiusSmall, y: AppLayout.shadowY)
     }
 }
 
