@@ -89,41 +89,32 @@ struct EntryListRow: View {
     
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: iconForType(entry.contentType))
-                .foregroundStyle(.secondary)
+            Image(systemName: ContentType(entry.contentType).icon)
+                .foregroundStyle(ContentType(entry.contentType).semanticColor)
                 .frame(width: 20)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.content)
                     .lineLimit(1)
-                    .font(.body)
+                    .font(.appBody)
                 
                 HStack {
                     Text(entry.createdAt, style: .relative)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                     
                     if let sourceApp = entry.sourceApp {
                         Text("•")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.appCaption)
+                            .foregroundStyle(.appSecondaryText)
                         Text(sourceApp)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.appCaption)
+                            .foregroundStyle(.appSecondaryText)
                     }
                 }
             }
         }
         .padding(.vertical, 2)
-    }
-    
-    private func iconForType(_ type: String) -> String {
-        switch type {
-        case "url": return "link"
-        case "email": return "envelope"
-        case "code": return "chevron.left.forwardslash.chevron.right"
-        default: return "doc.text"
-        }
     }
 }
 
@@ -134,14 +125,14 @@ struct EntryDetailView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Label("Type: \(entry.contentType.capitalized)", systemImage: iconForType(entry.contentType))
-                    .font(.headline)
+                Label("Type: \(entry.contentType.capitalized)", systemImage: ContentType(entry.contentType).icon)
+                    .font(.appTitle)
                 
                 Spacer()
                 
                 if entry.pinned {
                     Label("Pinned", systemImage: "pin.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.semanticFile)
                 }
             }
             
@@ -149,11 +140,7 @@ struct EntryDetailView: View {
             
             ScrollView {
                 Text(entry.content)
-                    .font(.system(.body, design: .monospaced))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(.secondary.opacity(0.1))
-                    .cornerRadius(8)
+                    .codeBlock()
             }
             
             Divider()
@@ -161,13 +148,13 @@ struct EntryDetailView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Created: \(entry.createdAt.formatted())")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                     
                     if let sourceApp = entry.sourceApp {
                         Text("Source: \(sourceApp)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.appCaption)
+                            .foregroundStyle(.appSecondaryText)
                     }
                 }
                 
@@ -189,7 +176,7 @@ struct EntryDetailView: View {
             Spacer()
         }
         .padding()
-        .frame(minWidth: 400, minHeight: 300)
+        .frame(minWidth: AppLayout.detailMinWidth, minHeight: AppLayout.detailMinHeight)
     }
     
     private func togglePin(_ entry: ClipboardEntry) {
@@ -202,14 +189,6 @@ struct EntryDetailView: View {
         pasteboard.setString(content, forType: .string)
     }
     
-    private func iconForType(_ type: String) -> String {
-        switch type {
-        case "url": return "link"
-        case "email": return "envelope"
-        case "code": return "chevron.left.forwardslash.chevron.right"
-        default: return "doc.text"
-        }
-    }
 }
 
 #Preview {

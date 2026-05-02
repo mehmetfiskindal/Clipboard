@@ -92,28 +92,24 @@ struct SnippetListRow: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: snippet.pinned ? "pin.fill" : "doc.text")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.appSecondaryText)
                 .frame(width: 20)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(snippet.title)
-                    .font(.body)
+                    .font(.appBody)
                     .lineLimit(1)
                 
                 Text(snippet.body)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appCaption)
+                    .foregroundStyle(.appSecondaryText)
                     .lineLimit(1)
                 
                 if !snippet.tags.isEmpty {
                     HStack(spacing: 4) {
                         ForEach(snippet.tags.prefix(3), id: \.self) { tag in
                             Text(tag)
-                                .font(.caption2)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.2))
-                                .cornerRadius(4)
+                                .badge(.semanticText)
                         }
                     }
                 }
@@ -138,7 +134,7 @@ struct SnippetDetailView: View {
                 
                 if snippet.pinned {
                     Label("Pinned", systemImage: "pin.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.semanticFile)
                 }
             }
             
@@ -146,11 +142,7 @@ struct SnippetDetailView: View {
                 HStack(spacing: 8) {
                     ForEach(snippet.tags, id: \.self) { tag in
                         Text(tag)
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.blue.opacity(0.2))
-                            .cornerRadius(6)
+                            .badge(.semanticText)
                     }
                 }
             }
@@ -159,11 +151,7 @@ struct SnippetDetailView: View {
             
             ScrollView {
                 Text(snippet.body)
-                    .font(.system(.body, design: .monospaced))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(.secondary.opacity(0.1))
-                    .cornerRadius(8)
+                    .codeBlock()
             }
             
             Divider()
@@ -171,11 +159,11 @@ struct SnippetDetailView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Created: \(snippet.createdAt.formatted())")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                     Text("Updated: \(snippet.updatedAt.formatted())")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                 }
                 
                 Spacer()
@@ -196,7 +184,7 @@ struct SnippetDetailView: View {
             Spacer()
         }
         .padding()
-        .frame(minWidth: 400, minHeight: 300)
+        .frame(minWidth: AppLayout.detailMinWidth, minHeight: AppLayout.detailMinHeight)
     }
     
     private func togglePin(_ snippet: Snippet) {
@@ -238,12 +226,9 @@ struct AddSnippetSheet: View {
                 .textFieldStyle(.roundedBorder)
             
             TextEditor(text: $snippetBody)
-                .font(.system(.body, design: .monospaced))
+                .font(.appMonospaced)
                 .frame(height: 150)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(.secondary.opacity(0.2), lineWidth: 1)
-                )
+                .textEditorBorder()
             
             TextField("Tags (comma separated)", text: $tags)
                 .textFieldStyle(.roundedBorder)

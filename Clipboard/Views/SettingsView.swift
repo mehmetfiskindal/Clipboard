@@ -30,7 +30,7 @@ struct SettingsView: View {
                     Label("About", systemImage: "info.circle")
                 }
         }
-        .frame(width: 400, height: 250)
+        .frame(width: AppLayout.settingsWidth, height: AppLayout.settingsHeight)
         .scenePadding()
     }
     
@@ -62,8 +62,8 @@ struct SettingsView: View {
                 }
                 
                 Text("Press this shortcut anywhere to open the quick search window.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appCaption)
+                    .foregroundStyle(.appSecondaryText)
             }
             
             Section("Navigation") {
@@ -92,20 +92,19 @@ struct SettingsView: View {
     private var aboutSettings: some View {
         VStack(spacing: 16) {
             Image(systemName: "scissors")
-                .font(.system(size: 64))
-                .foregroundStyle(.blue)
+                .font(.appLargeTitle)
+                .foregroundStyle(Color.accentColor)
             
             Text("Clipboard Manager")
-                .font(.title)
-                .fontWeight(.semibold)
+                .font(.appTitle)
             
             Text("Version 1.0.0")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.appCaption)
+                .foregroundStyle(.appSecondaryText)
             
             Text("A powerful clipboard manager for macOS")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.appCaption)
+                .foregroundStyle(.appSecondaryText)
             
             Spacer()
             
@@ -123,10 +122,10 @@ struct ShortcutRecorder: View {
     
     var body: some View {
         Text(hotkey)
-            .font(.system(size: 13, weight: .medium))
+            .font(.appBodyMedium)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(.secondary.opacity(0.2))
+            .background(.quaternary.opacity(0.3))
             .cornerRadius(6)
     }
 }

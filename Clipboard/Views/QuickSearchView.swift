@@ -75,10 +75,10 @@ struct QuickSearchView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Search field
-            HStack(spacing: 12) {
+            HStack(spacing: AppLayout.spacingMedium) {
                 Image(systemName: "magnifyingglass")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.appSecondaryText)
                 
                 TextField("Search clipboard history and snippets...", text: $searchText)
                     .font(.title3)
@@ -92,13 +92,13 @@ struct QuickSearchView: View {
                     Button(action: { searchText = "" }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title3)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.appSecondaryText)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, AppLayout.paddingLarge)
+            .padding(.vertical, AppLayout.paddingMedium)
             
             Divider()
             
@@ -112,7 +112,7 @@ struct QuickSearchView: View {
                             selectedIndex = index
                             selectCurrentItem()
                         }
-                        .background(index == selectedIndex ? Color.accentColor.opacity(0.2) : Color.clear)
+                        .appRowSelected(index == selectedIndex)
                 }
                 .listStyle(.plain)
                 .onChange(of: searchText) { _, _ in
@@ -130,52 +130,40 @@ struct QuickSearchView: View {
             
             // Footer
             HStack {
-                HStack(spacing: 4) {
+                HStack(spacing: AppLayout.spacingSmall / 2) {
                     Text("↑↓")
-                        .font(.caption)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
-                        .background(.secondary.opacity(0.2))
-                        .cornerRadius(4)
+                        .keyboardHint()
                     Text("Navigate")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                 }
                 
-                HStack(spacing: 4) {
+                HStack(spacing: AppLayout.spacingSmall / 2) {
                     Text("↵")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.secondary.opacity(0.2))
-                        .cornerRadius(4)
+                        .keyboardHint()
                     Text("Copy")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                 }
                 
-                HStack(spacing: 4) {
+                HStack(spacing: AppLayout.spacingSmall / 2) {
                     Text("⌘↵")
-                        .font(.caption)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
-                        .background(.secondary.opacity(0.2))
-                        .cornerRadius(4)
+                        .keyboardHint()
                     Text("Paste")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                 }
                 
                 Spacer()
                 
                 Text("\(allItems.count) items")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appCaption)
+                    .foregroundStyle(.appSecondaryText)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, AppLayout.paddingLarge)
+            .padding(.vertical, AppLayout.paddingSmall)
         }
-        .frame(width: 500)
+        .frame(width: AppLayout.quickSearchWidth)
         .onAppear {
             isSearchFocused = true
             selectedIndex = 0
@@ -246,28 +234,28 @@ struct QuickSearchEntryRow: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: iconForType(entry.contentType))
+            Image(systemName: ContentType(entry.contentType).icon)
                 .font(.title3)
-                .foregroundStyle(.secondary)
-                .frame(width: 24)
+                .foregroundStyle(ContentType(entry.contentType).semanticColor)
+                .frame(width: AppLayout.iconSizeMedium)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.content)
                     .lineLimit(1)
-                    .font(.system(size: 14))
+                    .font(.appBody)
                 
                 HStack(spacing: 6) {
                     Label(entry.createdAt.formatted(.relative(presentation: .named)), systemImage: "clock")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                     
                     if let sourceApp = entry.sourceApp {
                         Text("•")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.appCaption)
+                            .foregroundStyle(.appSecondaryText)
                         Text(sourceApp)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.appCaption)
+                            .foregroundStyle(.appSecondaryText)
                     }
                 }
             }
@@ -276,26 +264,13 @@ struct QuickSearchEntryRow: View {
             
             if entry.pinned {
                 Image(systemName: "pin.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(.semanticFile)
             }
             
             Text("History")
-                .font(.caption2)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Color.blue.opacity(0.2))
-                .cornerRadius(4)
+                .badge(Color.accentColor)
         }
-        .padding(.vertical, 4)
-    }
-    
-    private func iconForType(_ type: String) -> String {
-        switch type {
-        case "url": return "link"
-        case "email": return "envelope"
-        case "code": return "chevron.left.forwardslash.chevron.right"
-        default: return "doc.text"
-        }
+        .padding(.vertical, AppLayout.listRowVertical + 2)
     }
 }
 
@@ -306,35 +281,31 @@ struct QuickSearchSnippetRow: View {
         HStack(spacing: 12) {
             Image(systemName: snippet.pinned ? "pin.fill" : "doc.text")
                 .font(.title3)
-                .foregroundStyle(.secondary)
-                .frame(width: 24)
+                .foregroundStyle(.appSecondaryText)
+                .frame(width: AppLayout.iconSizeMedium)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(snippet.title)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.appBodyMedium)
                 
                 Text(snippet.body)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
+                    .font(.appCaption)
+                    .foregroundStyle(.appSecondaryText)
                     .lineLimit(1)
                 
                 if !snippet.tags.isEmpty {
                     Text(snippet.tags.joined(separator: ", "))
-                        .font(.caption2)
-                        .foregroundStyle(.blue)
+                        .font(.appCaption)
+                        .foregroundStyle(.semanticText)
                 }
             }
             
             Spacer()
             
             Text("Snippet")
-                .font(.caption2)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Color.green.opacity(0.2))
-                .cornerRadius(4)
+                .badge(.appSuccess)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, AppLayout.listRowVertical + 2)
     }
 }
 

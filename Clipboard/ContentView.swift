@@ -24,7 +24,7 @@ struct ContentView: View {
                 }
                 .tag(1)
         }
-        .frame(minWidth: 700, minHeight: 500)
+        .frame(minWidth: AppLayout.minWindowWidth, minHeight: AppLayout.minWindowHeight)
     }
 }
 

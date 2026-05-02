@@ -40,22 +40,20 @@ struct MenuBarView: View {
             // Search bar
             HStack {
                 Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.appSecondaryText)
                 TextField("Search...", text: $searchText)
                     .textFieldStyle(.plain)
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.appSecondaryText)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(8)
-            .background(.secondary.opacity(0.1))
-            .cornerRadius(8)
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
+            .searchBarStyle()
+            .padding(.horizontal, AppLayout.paddingMedium)
+            .padding(.top, AppLayout.paddingMedium)
             
             // Tab selector
             Picker("", selection: $selectedTab) {
@@ -63,8 +61,8 @@ struct MenuBarView: View {
                 Text("Snippets").tag(1)
             }
             .pickerStyle(.segmented)
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
+            .padding(.horizontal, AppLayout.paddingMedium)
+            .padding(.top, AppLayout.paddingSmall)
             
             // Content
             TabView(selection: $selectedTab) {
@@ -75,7 +73,7 @@ struct MenuBarView: View {
             .frame(height: 300)
             
             Divider()
-                .padding(.horizontal, 12)
+                .padding(.horizontal, AppLayout.paddingMedium)
             
             // Footer buttons
             HStack {
@@ -92,17 +90,17 @@ struct MenuBarView: View {
                 .buttonStyle(.link)
                 
                 Divider()
-                    .frame(height: 12)
+                    .frame(height: AppLayout.spacingMedium)
                 
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
                 }
                 .buttonStyle(.link)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, AppLayout.paddingMedium)
+            .padding(.vertical, AppLayout.paddingSmall)
         }
-        .frame(width: 320)
+        .frame(width: AppLayout.menuBarWidth)
     }
     
     private var clipboardList: some View {
@@ -176,27 +174,27 @@ struct ClipboardEntryRow: View {
     
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: iconForType(entry.contentType))
-                .foregroundStyle(.secondary)
+            Image(systemName: ContentType(entry.contentType).icon)
+                .foregroundStyle(ContentType(entry.contentType).semanticColor)
                 .frame(width: 20)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.content)
                     .lineLimit(2)
-                    .font(.system(size: 13))
+                    .font(.appBody)
                 
                 HStack {
                     Text(entry.createdAt, style: .relative)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .font(.appCaption)
+                        .foregroundStyle(.appSecondaryText)
                     
                     if let sourceApp = entry.sourceApp {
                         Text("•")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .font(.appCaption)
+                            .foregroundStyle(.appSecondaryText)
                         Text(sourceApp)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .font(.appCaption)
+                            .foregroundStyle(.appSecondaryText)
                     }
                 }
             }
@@ -204,20 +202,11 @@ struct ClipboardEntryRow: View {
             if entry.pinned {
                 Spacer()
                 Image(systemName: "pin.fill")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
+                    .font(.appCaption)
+                    .foregroundStyle(.semanticFile)
             }
         }
         .padding(.vertical, 2)
-    }
-    
-    private func iconForType(_ type: String) -> String {
-        switch type {
-        case "url": return "link"
-        case "email": return "envelope"
-        case "code": return "chevron.left.forwardslash.chevron.right"
-        default: return "doc.text"
-        }
     }
 }
 
@@ -227,22 +216,22 @@ struct SnippetRow: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: snippet.pinned ? "pin.fill" : "doc.text")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.appSecondaryText)
                 .frame(width: 20)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(snippet.title)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.appBodyMedium)
                 
                 Text(snippet.body)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
+                    .font(.appCaption)
+                    .foregroundStyle(.appSecondaryText)
                     .lineLimit(2)
                 
                 if !snippet.tags.isEmpty {
                     Text(snippet.tags.joined(separator: ", "))
-                        .font(.caption2)
-                        .foregroundStyle(.blue)
+                        .font(.appCaption)
+                        .foregroundStyle(.semanticText)
                 }
             }
         }
